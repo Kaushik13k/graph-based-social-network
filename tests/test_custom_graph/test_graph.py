@@ -1,6 +1,6 @@
 import pytest
-from app.custom_graph.graph import Graph
-from app.custom_graph.exceptions import NodeNotFoundError, EdgeAlreadyExistsError, NodeAlreadyExistsError
+from app.custom_graph.core.graph import Graph
+from app.custom_graph.exceptions.exceptions import NodeNotFoundError, EdgeAlreadyExistsError, NodeAlreadyExistsError
 
 
 @pytest.fixture
