@@ -1,4 +1,4 @@
-from custom_graph.graph import Graph
+from app.custom_graph.core.graph import Graph
 
 
 class SocialNetwork:
