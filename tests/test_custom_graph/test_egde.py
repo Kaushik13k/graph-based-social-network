@@ -1,5 +1,5 @@
 import pytest
-from app.custom_graph.edge import Edge
+from app.graph.edge import Edge
 
 
 def test_edge_initialization():

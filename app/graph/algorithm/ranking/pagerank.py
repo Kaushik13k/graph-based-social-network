@@ -1,5 +1,5 @@
 from algorithm.ranking.base import RankingStrategy
-from app.custom_graph.core.graph import Graph
+from app.graph.core.graph import Graph
 
 
 class PageRank(RankingStrategy):

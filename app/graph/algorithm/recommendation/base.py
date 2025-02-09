@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.custom_graph.core.graph import Graph
+from app.graph.core.graph import Graph
 from typing import Any, Dict
 
 
