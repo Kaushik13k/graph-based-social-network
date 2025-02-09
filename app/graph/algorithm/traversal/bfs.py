@@ -1,7 +1,7 @@
-from collections import deque
-from algorithm.traversal.base import TraversalStrategy
 from core.graph import Graph
 from typing import Any, List
+from collections import deque
+from algorithm.traversal.base import TraversalStrategy
 
 
 class BFS(TraversalStrategy):
