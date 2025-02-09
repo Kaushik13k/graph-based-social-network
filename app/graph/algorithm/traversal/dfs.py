@@ -1,9 +1,9 @@
-from algorithm.traversal.base import TraversalStrategy
+from algorithm.traversal.base import Traversal
 from core.graph import Graph
 from typing import Any, List, Optional, Set
 
 
-class DFS(TraversalStrategy):
+class DFS(Traversal):
     def traverse(self, graph: Graph, start_node: Any, visited: Optional[Set[Any]] = None) -> List[Any]:
         if visited is None:
             visited = set()

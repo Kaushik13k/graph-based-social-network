@@ -1,11 +1,10 @@
 import heapq
 from core.graph import Graph
 from typing import Any, Dict, Tuple, List
-from algorithm.traversal.base import TraversalStrategy
+from algorithm.shortest_path.base import ShortestPath
 
 
-class Dijkstra(TraversalStrategy):
-
+class Dijkstra(ShortestPath):
     def traverse(self, graph: Graph, start_node: Any) -> Dict[Any, Tuple[float, List[Any]]]:
         if start_node not in graph.nodes:
             raise ValueError(f"Node {start_node} not found.")
@@ -18,9 +17,11 @@ class Dijkstra(TraversalStrategy):
             current_distance, current_node, path = heapq.heappop(
                 priority_queue)
 
-            for edge in graph.adjacency_list[current_node]:
-                neighbor = edge.to_node
-                distance = current_distance + edge.weight
+            if current_distance > shortest_paths[current_node][0]:
+                continue
+
+            for neighbor, weight in graph.get_neighbors(current_node):
+                distance = current_distance + weight
 
                 if distance < shortest_paths[neighbor][0]:
                     shortest_paths[neighbor] = (distance, path + [neighbor])
