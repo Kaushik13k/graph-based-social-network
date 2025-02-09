@@ -4,7 +4,7 @@ from starlette.routing import Match
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from routers import health, posts, users
+from routers import health, posts, users, message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,9 +55,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix="/v1")
-app.include_router(posts.router, prefix="/v1")
 app.include_router(users.router, prefix="/v1")
+app.include_router(posts.router, prefix="/v1")
+app.include_router(health.router, prefix="/v1")
+app.include_router(message.router, prefix="/v1")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
