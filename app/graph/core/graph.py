@@ -2,21 +2,17 @@ from typing import Any, Dict, List
 from models.node import Node
 from models.edge import Edge
 from observer import GraphObserver
+from graph.core.base import GraphBase
 from exceptions.exceptions import NodeNotFoundError, EdgeAlreadyExistsError, NodeAlreadyExistsError
 
 
-class Graph:
+class Graph(GraphBase):
 
-    _instance = None
-
-    def __new__(cls, directed=False):
-        if cls._instance is None:
-            cls._instance = super(Graph, cls).__new__(cls)
-            cls._instance.nodes = dict()
-            cls._instance.adjacency_list = dict()
-            cls._instance.directed = directed
-            cls._instance.observer = GraphObserver()
-        return cls._instance
+    def __init__(self, directed=False):
+        self.nodes = dict()
+        self.adjacency_list = dict()
+        self.directed = directed
+        self.observer = GraphObserver()
 
     def add_node(self, node_id: Any, node_type: str = "default", **attributes) -> None:
         if node_id in self.nodes:
@@ -89,6 +85,23 @@ class Graph:
         if node_id not in self.adjacency_list:
             raise NodeNotFoundError(f"Node {node_id} not found.")
         return [edge.to_node for edge in self.adjacency_list[node_id]]
+
+    def order(self) -> int:
+        return len(self.nodes)
+
+    def degree(self, node_id: Any) -> Dict[str, int]:
+        if node_id not in self.nodes:
+            raise NodeNotFoundError(f"Node {node_id} not found.")
+
+        out_degree = len(self.adjacency_list[node_id])
+
+        if not self.directed:
+            return {"degree": out_degree}
+
+        in_degree = sum(1 for edges in self.adjacency_list.values()
+                        for edge in edges if edge.to_node == node_id)
+
+        return {"in-degree": in_degree, "out-degree": out_degree}
 
     def print_graph(self) -> None:
         for node_id, edges in self.adjacency_list.items():
