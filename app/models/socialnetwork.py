@@ -5,24 +5,25 @@ class SocialNetworkOps:
     def __init__(self):
         self.graph = Graph(directed=True)
 
-    def add_user(self, user_id: str, name: str, username: str, email: str, age: int) -> None:
-        if not self.graph.has_node(user_id):
+    def add_user(self, user_id: str, username: str, name: str, email: str, age: int, place: str) -> None:
+        if not self.graph.has_node(username):
             self.graph.add_node(
-                user_id,
+                username,
                 node_type="user",
+                user_id=user_id,
                 name=name,
-                username=username,
                 email=email,
                 age=age,
+                place=place,
                 posts=[],
                 connections=[]
             )
         else:
-            print(f"User {user_id} already exists.")
+            print(f"User {username} already exists.")
 
-    def add_post(self, user_id: str, post_id: str, title: str, content: str) -> None:
-        if self.graph.has_node(user_id):
-            user_node = self.graph.nodes[user_id]
+    def add_post(self, username: str, post_id: str, title: str, content: str) -> None:
+        if self.graph.has_node(username):
+            user_node = self.graph.nodes[username]
             if user_node.node_type == "user":
                 user_node.attributes["posts"].append(post_id)
                 self.graph.add_node(
@@ -30,50 +31,50 @@ class SocialNetworkOps:
                     node_type="post",
                     title=title,
                     content=content,
-                    author=user_id,
+                    author=username,
                     likes=[]
                 )
-                self.graph.add_edge(user_id, post_id)
+                self.graph.add_edge(username, post_id)
             else:
-                print(f"{user_id} is not a valid user.")
+                print(f"{username} is not a valid user.")
         else:
-            print(f"User {user_id} does not exist!")
+            print(f"User {username} does not exist!")
 
-    def add_connection(self, user1: str, user2: str) -> None:
-        if self.graph.has_node(user1) and self.graph.has_node(user2):
-            node1, node2 = self.graph.nodes[user1], self.graph.nodes[user2]
+    def add_connection(self, username1: str, username2: str) -> None:
+        if self.graph.has_node(username1) and self.graph.has_node(username2):
+            node1, node2 = self.graph.nodes[username1], self.graph.nodes[username2]
 
             if node1.node_type == "user" and node2.node_type == "user":
-                if not self.graph.has_edge(user1, user2):
-                    self.graph.add_edge(user1, user2)
+                if not self.graph.has_edge(username1, username2):
+                    self.graph.add_edge(username1, username2)
             else:
                 print("Connections can only be made between users.")
         else:
             print(f"One or both users do not exist.")
 
-    def like_post(self, user_id: str, post_id: str) -> None:
-        if self.graph.has_node(user_id) and self.graph.has_node(post_id):
-            user_node, post_node = self.graph.nodes[user_id], self.graph.nodes[post_id]
+    def like_post(self, username: str, post_id: str) -> None:
+        if self.graph.has_node(username) and self.graph.has_node(post_id):
+            user_node, post_node = self.graph.nodes[username], self.graph.nodes[post_id]
             if user_node.node_type == "user" and post_node.node_type == "post":
-                if user_id not in post_node.attributes["likes"]:
-                    post_node.attributes["likes"].append(user_id)
-                    self.graph.add_edge(user_id, post_id, edge_type="like")
+                if username not in post_node.attributes["likes"]:
+                    post_node.attributes["likes"].append(username)
+                    self.graph.add_edge(username, post_id, edge_type="like")
             else:
                 print("Invalid like operation. Users can only like posts.")
         else:
-            print(f"Either User {user_id} or Post {post_id} does not exist.")
+            print(f"Either User {username} or Post {post_id} does not exist.")
 
-    def get_connections(self, user_id: str):
-        if self.graph.has_node(user_id):
+    def get_connections(self, username: str):
+        if self.graph.has_node(username):
             return [
-                neighbor for neighbor in self.graph.get_neighbors(user_id)
+                neighbor for neighbor in self.graph.get_neighbors(username)
                 if self.graph.nodes[neighbor].node_type == "user"
             ]
         return []
 
-    def get_posts(self, user_id: str):
-        if self.graph.has_node(user_id):
-            return self.graph.nodes[user_id].attributes["posts"]
+    def get_posts(self, username: str):
+        if self.graph.has_node(username):
+            return self.graph.nodes[username].attributes["posts"]
         return []
 
     def get_who_liked_post(self, post_id: str):
