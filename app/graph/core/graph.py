@@ -1,9 +1,9 @@
 from typing import Any, Dict, List
-from models.node import Node
-from models.edge import Edge
-from observer import GraphObserver
+from graph.models.node import Node
+from graph.models.edge import Edge
 from graph.core.base import GraphBase
-from exceptions.exceptions import NodeNotFoundError, EdgeAlreadyExistsError, NodeAlreadyExistsError
+from graph.core.observer import GraphObserver, UserNotification
+from graph.exceptions.exceptions import NodeNotFoundError, EdgeAlreadyExistsError, NodeAlreadyExistsError
 
 
 class Graph(GraphBase):
@@ -13,6 +13,7 @@ class Graph(GraphBase):
         self.adjacency_list = dict()
         self.directed = directed
         self.observer = GraphObserver()
+        self.observer.attach(UserNotification())
 
     def add_node(self, node_id: Any, node_type: str = "default", **attributes) -> None:
         if node_id in self.nodes:
@@ -33,23 +34,23 @@ class Graph(GraphBase):
 
         self.observer.notify(f"Node {node_id} removed.")
 
-    def add_edge(self, from_node: Any, to_node: Any, weight: float = 1.0) -> None:
+    def add_edge(self, from_node: Any, to_node: Any, weight: float = 1.0, **attributes) -> None:
         if from_node not in self.nodes or to_node not in self.nodes:
             raise NodeNotFoundError(
                 f"Node {from_node} or {to_node} not found.")
 
-        edge = Edge(from_node, to_node, weight)
+        edge = Edge(from_node, to_node, weight, **attributes)
         if edge in self.adjacency_list[from_node]:
             raise EdgeAlreadyExistsError(f"Edge {edge} already exists.")
 
         self.adjacency_list[from_node].append(edge)
 
         if not self.directed:
-            reverse_edge = Edge(to_node, from_node, weight)
+            reverse_edge = Edge(to_node, from_node, weight, **attributes)
             self.adjacency_list[to_node].append(reverse_edge)
 
         self.observer.notify(
-            f"Edge added from {from_node} to {to_node} with weight {weight}.")
+            f"Edge added from {from_node} to {to_node} with weight {weight} and attributes {attributes}.")
 
     def remove_edge(self, from_node: Any, to_node: Any) -> None:
         if from_node not in self.adjacency_list:
@@ -103,10 +104,11 @@ class Graph(GraphBase):
 
         return {"in-degree": in_degree, "out-degree": out_degree}
 
-    def print_graph(self) -> None:
-        for node_id, edges in self.adjacency_list.items():
-            neighbors = [f"{edge.to_node} (w={edge.weight})" for edge in edges]
-            print(f"Node {node_id} -> {neighbors}")
+    def has_node(self, node_id: Any) -> bool:
+        return node_id in self.nodes
+
+    def has_edge(self, from_node: Any, to_node: Any) -> bool:
+        return any(edge.to_node == to_node for edge in self.adjacency_list.get(from_node, []))
 
     def __repr__(self) -> str:
         return f"Graph(nodes={list(self.nodes.keys())})"

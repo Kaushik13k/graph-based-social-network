@@ -1,6 +1,6 @@
-from algorithm.traversal.base import Traversal
-from core.graph import Graph
+from graph.core.graph import Graph
 from typing import Any, List, Optional, Set
+from graph.algorithm.traversal.base import Traversal
 
 
 class DFS(Traversal):

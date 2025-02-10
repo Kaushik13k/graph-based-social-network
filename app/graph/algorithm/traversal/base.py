@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from core.graph import Graph
+from graph.core.graph import Graph
 from typing import Any, List
 
 
