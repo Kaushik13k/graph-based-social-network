@@ -7,9 +7,9 @@ sn = SocialNetworkOps()
 
 
 @app.post("/users/")
-def add_user(user_id: str, name: str, username: str, email: str, age: int):
+def add_user(user_id: str, name: str, username: str, email: str, age: int, place: str):
     """Add User"""
-    sn.add_user(user_id, name, username, email, age)
+    sn.add_user(user_id, username, name, email, age, place)
     return {"message": "User added successfully"}
 
 
@@ -93,6 +93,13 @@ def get_post_author(post_id: str):
     """Get Post Author"""
     author = sn.get_post_author(post_id)
     return {"author": author}
+
+
+@app.get("/users/mutual_connections/{user}")
+def get_connections(user: str):
+    """Get User mutual friends"""
+    connections = sn.mutual_friends(user)
+    return {"mutual friends": connections}
 
 
 if __name__ == "__main__":
