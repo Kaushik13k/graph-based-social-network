@@ -1,9 +1,12 @@
+from collections import Counter
 from graph.core.graph import Graph
+from graph.algorithm.traversal.bfs import BFS
 
 
 class SocialNetworkOps:
     def __init__(self):
         self.graph = Graph(directed=True)
+        self.bfs = BFS()
 
     def add_user(self, user_id: str, username: str, name: str, email: str, age: int, place: str) -> None:
         if not self.graph.has_node(username):
@@ -91,3 +94,20 @@ class SocialNetworkOps:
         if self.graph.has_node(post_id):
             return self.graph.nodes[post_id].attributes.get("author", None)
         return None
+
+    def mutual_friends(self, username: str, top_k: int = 5):
+        if not self.graph.has_node(username):
+            print(f"User {username} does not exist.")
+            return []
+
+        bfs_result = self.bfs.traverse(self.graph, username)
+
+        mutual_friend_counts = Counter()
+
+        for friend in bfs_result:
+            if friend != username and not self.graph.has_edge(username, friend):
+                mutual_friend_counts[friend] += 1
+
+        recommended_friends = [user for user,
+                               _ in mutual_friend_counts.most_common(top_k)]
+        return recommended_friends
