@@ -1,10 +1,10 @@
-from collections import deque
-from algorithm.traversal.base import TraversalStrategy
-from core.graph import Graph
 from typing import Any, List
+from collections import deque
+from graph.core.graph import Graph
+from graph.algorithm.traversal.base import Traversal
 
 
-class BFS(TraversalStrategy):
+class BFS(Traversal):
 
     def traverse(self, graph: Graph, start_node: Any) -> List[Any]:
         if start_node not in graph.nodes:

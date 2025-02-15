@@ -4,6 +4,7 @@ class Observer:
 
 
 class UserNotification(Observer):
+
     def update(self, message: str):
         print(f"🔔 Notification: {message}")
 

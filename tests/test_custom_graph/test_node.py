@@ -1,5 +1,5 @@
 import pytest
-from app.custom_graph.node import Node
+from app.graph.node import Node
 
 
 def test_node_initialization():

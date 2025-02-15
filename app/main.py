@@ -1,120 +1,106 @@
-import logging
 import uvicorn
-from starlette.routing import Match
-from fastapi import FastAPI, Request
-from contextlib import asynccontextmanager
-from fastapi.middleware.cors import CORSMiddleware
-from routers import health, posts, users, message
+from fastapi import FastAPI, HTTPException
+from models.socialnetwork import SocialNetworkOps
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+app = FastAPI()
+sn = SocialNetworkOps()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # startup
-    logger.info("Started the server!")
-    yield
-    # shutdown
-    logger.info("Shutdown the server!")
+@app.post("/users/")
+def add_user(user_id: str, name: str, username: str, email: str, age: int, place: str):
+    """Add User"""
+    sn.add_user(user_id, username, name, email, age, place)
+    return {"message": "User added successfully"}
 
 
-app = FastAPI(
-    title="Social Network",
-    version="0.0.1",
-    contact={"name": "Kaushik", "email": "13kaushikk@gmail.com"},
-    debug=True,
-    lifespan=lifespan,
-)
+@app.get("/users/")
+def get_all_nodes():
+    """Get All Users"""
+    nodes = list(sn.graph.nodes.keys())
+    return {"nodes": nodes}
 
 
-@app.middleware("https")
-async def log_middlewear(request: Request, call_next):
-    logger.info(f"{request.method} {request.url}")
-    routes = request.app.router.routes
-    logger.info("Params: ")
-    for route in routes:
-        match, scope = route.matches(request)
-        if match == Match.FULL:
-            for name, value in scope["path_params"].items():
-                logger.info(f"{name}: {value}")
-    logger.info("Headers: ")
-    for name, value in request.headers.items():
-        logger.info(f"{name}: {value}")
-
-    response = await call_next(request)
-    logger.info(f"{request.method} {request.url} {response.status_code}")
-    return response
+@app.post("/users/{user1}/connect/{user2}")
+def add_connection(user1: str, user2: str):
+    """Create Connection Between Two Users"""
+    sn.add_connection(user1, user2)
+    return {"message": f"User {user1} is now connected to {user2}"}
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/users/{user_id}/connections")
+def get_connections(user_id: str):
+    """Get User Connections"""
+    connections = sn.get_connections(user_id)
+    return {"connections": connections}
 
-app.include_router(users.router, prefix="/v1")
-app.include_router(posts.router, prefix="/v1")
-app.include_router(health.router, prefix="/v1")
-app.include_router(message.router, prefix="/v1")
+
+@app.post("/posts/")
+def add_post(user_id: str, post_id: str, title: str, content: str):
+    """Add Post"""
+    sn.add_post(user_id, post_id, title, content)
+    return {"message": "Post added successfully"}
+
+
+@app.get("/posts/")
+def get_all_posts():
+    """Get All Posts"""
+    posts = [
+        node_id for node_id, node in sn.graph.nodes.items()
+        if node.node_type == "post"
+    ]
+    return {"posts": posts}
+
+
+@app.get("/users/{user_id}/posts")
+def get_posts(user_id: str):
+    """Get Posts by User"""
+    posts = sn.get_posts(user_id)
+    return {"posts": posts}
+
+
+@app.post("/posts/{post_id}/like")
+def like_post(user_id: str, post_id: str):
+    """Like a Post"""
+    author = sn.get_post_author(post_id)
+    if not author:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    connections = sn.get_connections(user_id)
+    if author not in connections:
+        raise HTTPException(
+            status_code=403, detail="You must be connected to the author to like this post")
+
+    sn.like_post(user_id, post_id)
+    return {"message": "Post liked successfully"}
+
+
+@app.get("/posts/{post_id}/likes")
+def get_who_liked_post(post_id: str):
+    """Get Who Liked a Post"""
+    liked_users = sn.get_who_liked_post(post_id)
+    return {"liked_by": liked_users}
+
+
+@app.get("/posts/{post_id}/like_count")
+def get_post_like_count(post_id: str):
+    """Get Like Count on a Post"""
+    like_count = sn.get_post_like_count(post_id)
+    return {"like_count": like_count}
+
+
+@app.get("/posts/{post_id}/author")
+def get_post_author(post_id: str):
+    """Get Post Author"""
+    author = sn.get_post_author(post_id)
+    return {"author": author}
+
+
+@app.get("/users/mutual_connections/{user}")
+def get_connections(user: str):
+    """Get User mutual friends"""
+    connections = sn.mutual_friends(user)
+    return {"mutual friends": connections}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-# from services.user_queries import UserRepository
-# import asyncio
-# from models.socialnetwork import SocialNetwork
-
-
-# async def main():
-#     social_graph = SocialNetwork()
-#     social_graph.add_user("user_1")
-
-#     social_graph.add_user("user_2")
-#     social_graph.add_connection("user_1", "user_2")
-
-#     print("Friends of user_1:", social_graph.get_friends("user_1"))
-
-#     social_graph.add_post("user_1", "Hello world!")
-#     print("Posts by user_1:", social_graph.graph.nodes["user_1"]["posts"])
-# asyncio.run(main())
-
-
-# if __name__ == "__main__":
-#     user_repo = UserRepository()
-#     # post_repo = PostRepository()
-
-#     print("Creating Users...")
-#     user_repo.create(name="Alice", user_name="Alice_@12",
-#                      email="alice@example.com", age=25)
-#     user_repo.create(name="Bob", user_name="Bob_@12",
-#                      email="bob@example.com",  age=28)
-
-#     print()
-#     print("Users in Database:")
-#     for record in user_repo.all_users():
-#         print(record)
-
-#     # print()
-#     # print("Creating Posts...")
-#     # post_repo.create("Title-1", "Hello, world!", "2025-02-05T10:00:00",
-#     #                  "alice@example.com")
-#     # post_repo.create("Title-2", "Neo4j is awesome!",
-#     #                  "2025-02-05T12:00:00", "bob@example.com")
-
-#     # print()
-#     # print("Posts in Database:")
-#     # for record in post_repo.posts():
-#     #     print(record)
-
-#     # print()
-#     # print("Updating Alice's email...")
-#     # user_repo.update("alice@newdomain.com", "alice@newdomain.com")
-
-#     # print()
-#     # print("Deleting User Bob...")
-#     # user_repo.delete("2")
-
-#     user_repo.db.close()
